@@ -33,7 +33,7 @@
 
 用这个方式就可以查看Linux根目录下的一级目录，如下图所示：
 
-![目录树](E:\CODE\图\画图截图\目录树.png)
+![目录树](https://gitee.com/binary-whispers/pic/raw/master///20251204193645203.png)
 
 ## 1. 创建目录：mkdir
 
@@ -73,7 +73,7 @@ path1
 
 这是一个文件属性的具体信息：
 
-![文件属性](E:\CODE\图\画图截图\文件属性.png)
+![文件属性](https://gitee.com/binary-whispers/pic/raw/master///20251204193700992.png)
 
 对于**文件的时间属性：**Linux有三个关键时间戳，`touch`指令的核心作用是修改这些时间戳，如果文件不存在自动创建空文件
 
@@ -307,7 +307,7 @@ rmdir: failed to remove directory ‘show1/show2’: Directory not empty
 
 **为什么路径是定位文件/目录的唯一方式？**
 
-![路径唯一](E:\CODE\图\画图截图\路径唯一.png)
+![路径唯一](https://gitee.com/binary-whispers/pic/raw/master///20251204193708313.png)
 
 对于多叉树：
 
@@ -506,8 +506,6 @@ code.txt  hello.c  hello.png
 * `find`：`find [路径] [选项]`按照文件名、文件大小、文件路径查找，可以递归遍历目录树
 * `which`：`which [命令]`查找命令的路径
 
-
-
 ```bash
 # 查找这个路径下的所有以.txt为后缀的文件
 [root@VM-0-11-centos ~]# find /root/path1 "*.txt"
@@ -525,3 +523,572 @@ alias ls='ls --color=auto'
 	/usr/bin/ls
 ```
 
+# 四、改：修改文件/目录属性、内容与位置
+
+修改涵盖修改文件内容、文件名/目录名、权限、所有者、位置等场景
+
+## 1. mv （移动/重命名文件目录）
+
+> * 重命名：当源和目标在同一目录时，实现重命名
+> * 移动：当目标是已存在的目录时，将源文件/目录移动到目标目录
+
+**语法与选项**
+
+| 语法     | `mv [选项] 源文件/目录 目标文件/目录` |
+| -------- | ------------------------------------- |
+| 常用选项 | 说明                                  |
+| `-i`     | 目标存在时提示确认（避免覆盖）        |
+| `-f`     | 强制覆盖目标（无提示，谨慎使用）      |
+
+**案例**
+
+```bash
+[vect@VM-0-11-centos test]$ tree
+.
+|-- C++
+|   `-- hello
+|-- he.txt
+`-- num.txt
+
+2 directories, 2 files
+# 给已存在文件重命名
+[vect@VM-0-11-centos test]$ mv he.txt new.txt
+[vect@VM-0-11-centos test]$ ls
+C++  new.txt  num.txt
+[vect@VM-0-11-centos test]$ clear
+[vect@VM-0-11-centos test]$ tree
+.
+|-- C++
+|   `-- hello
+|-- new.txt
+`-- num.txt
+
+2 directories, 2 files
+[vect@VM-0-11-centos test]$ mv new.txt hh.txt
+[vect@VM-0-11-centos test]$ ls
+C++  hh.txt  num.txt
+# 给已存在目录改名
+[vect@VM-0-11-centos test]$ mv C++ cpp
+[vect@VM-0-11-centos test]$ ls
+cpp  hh.txt  num.txt
+[vect@VM-0-11-centos test]$ pwd
+/home/vect/test
+# 移动文件到另一个目录
+[vect@VM-0-11-centos test]$ mv hh.txt ./cpp
+[vect@VM-0-11-centos test]$ ls
+cpp  num.txt
+[vect@VM-0-11-centos test]$ tree
+.
+|-- cpp
+|   |-- hello
+|   `-- hh.txt
+`-- num.txt
+
+2 directories, 2 files
+[vect@VM-0-11-centos test]$ pwd
+/home/vect/test
+# 切到上一级目录
+[vect@VM-0-11-centos test]$ cd ../
+[vect@VM-0-11-centos ~]$ mkdir Linux
+[vect@VM-0-11-centos ~]$ tree
+.
+|-- Linux
+|-- list
+`-- test
+    |-- cpp
+    |   |-- hello
+    |   `-- hh.txt
+    `-- num.txt
+
+5 directories, 2 files
+# 移动目录到另一个目录
+[vect@VM-0-11-centos ~]$ mv test /home/vect/list
+[vect@VM-0-11-centos ~]$ tree
+.
+|-- Linux
+`-- list
+    `-- test
+        |-- cpp
+        |   |-- hello
+        |   `-- hh.txt
+        `-- num.txt
+
+5 directories, 2 files
+[vect@VM-0-11-centos ~]$ 
+
+```
+
+## 2. cp（复制文件 / 目录）
+
+**复制与移动的差异**：`cp`是创建源文件 / 目录的副本（源文件保留），`mv`是转移源文件 / 目录的位置（源文件消失）；复制目录需加`-r`选项（递归复制目录内所有内容）。
+
+**语法与选项**
+
+| 语法     | `cp [选项] 源文件/目录 目标文件/目录`                |
+| -------- | ---------------------------------------------------- |
+| 常用选项 | 说明                                                 |
+| `-r`     | 递归复制目录（含子目录和文件）                       |
+| `-i`     | 目标存在时提示确认                                   |
+| `-f`     | 强制覆盖目标（无提示）                               |
+| `-p`     | 保留源文件的权限、时间戳等属性（默认复制会改变属性） |
+
+**案例**
+
+```bash
+[vect@VM-0-11-centos ~]$ tree
+.
+|-- Linux
+`-- list
+    `-- test
+        |-- cpp
+        |   |-- hello
+        |   `-- hh.txt
+        `-- num.txt
+
+5 directories, 2 files
+[vect@VM-0-11-centos ~]$ pwd
+/home/vect
+[vect@VM-0-11-centos ~]$ cd /home/vect/list/test
+# 拷贝文件形成副本
+[vect@VM-0-11-centos test]$ cp num.txt num_copy.txt
+[vect@VM-0-11-centos test]$ ls
+cpp  num_copy.txt  num.txt
+# 递归拷贝目录所有文件
+[vect@VM-0-11-centos test]$ cp -r cpp cpp_copy
+[vect@VM-0-11-centos test]$ ls
+cpp  cpp_copy  num_copy.txt  num.txt
+# 保留源文件属性拷贝形成副本
+[vect@VM-0-11-centos test]$ cp -p num.txt num_cc.txt
+[vect@VM-0-11-centos test]$ ls
+cpp  cpp_copy  num_cc.txt  num_copy.txt  num.txt
+[vect@VM-0-11-centos test]$ pwd
+/home/vect/list/test
+[vect@VM-0-11-centos test]$ > cnt.txt
+[vect@VM-0-11-centos test]$ tree
+.
+|-- cnt.txt
+|-- cpp
+|   |-- hello
+|   `-- hh.txt
+|-- cpp_copy
+|   |-- hello
+|   `-- hh.txt
+|-- num_cc.txt
+|-- num_copy.txt
+`-- num.txt
+
+4 directories, 6 files
+# 把/home/vect/list/test路径下的所有.txt文件拷贝到Linux路径下
+[vect@VM-0-11-centos test]$ cp *.txt /home/vect/Linux
+[vect@VM-0-11-centos test]$ cd ~
+[vect@VM-0-11-centos ~]$ tree
+.
+|-- Linux
+|   |-- cnt.txt
+|   |-- num_cc.txt
+|   |-- num_copy.txt
+|   `-- num.txt
+`-- list
+    `-- test
+        |-- cnt.txt
+        |-- cpp
+        |   |-- hello
+        |   `-- hh.txt
+        |-- cpp_copy
+        |   |-- hello
+        |   `-- hh.txt
+        |-- num_cc.txt
+        |-- num_copy.txt
+        `-- num.txt
+
+7 directories, 10 files
+```
+
+## 3. chmod（修改文件 / 目录权限）
+
+### 概念铺垫
+
+* **Linux 权限模型**：
+  
+  1. **访问者分类**：
+     * u（User）：文件拥有者（创建文件的用户）。
+     * g（Group）：文件所属组（拥有者所在的用户组）。
+     * o（Others）：其他用户（既非拥有者也不在所属组的用户）。
+     * a（All）：所有用户（u+g+o）。
+  
+     **如何确定访问者的身份？**按照拥有者->所属组->其他用户的顺序进行认定，并且只能认定一次：
+  
+     ![image-20251204111955959](https://gitee.com/binary-whispers/pic/raw/master///20251204193725356.png)
+  
+  2. **基本权限**：
+  
+     * r（读权限）：对文件可读取内容；对目录可`ls`查看内容。
+     * w（写权限）：对文件可修改内容；对目录可创建 / 删除文件。
+     * x（执行权限）：对文件可执行（如脚本）；对目录可`cd`进入。
+     * `-`：无对应权限。
+  
+  3. **权限表示方式**：每三个为一组，表示用户对文件的权限![image-20251204110126645](https://gitee.com/binary-whispers/pic/raw/master///20251204193729845.png)
+  
+     * 字符表示：如`rw-r--r--`（拥有者rw，所属组 r，其他用户r）。
+     * 数值表示：先铺垫一下，权限只有有和无两态，那么就可用`bool`表示![image-20251204111236939](https://gitee.com/binary-whispers/pic/raw/master///20251204193735593.png)
+
+### 语法与两种修改方式
+
+| 修改方式 | 语法                                      | 说明                                                    | 案例                                                         |
+| -------- | ----------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------ |
+| 字符方式 | `chmod [u/g/o/a][+/-/=][r/w/x] 文件/目录` | `+`：添加权限；`-`：移除权限；`=`：设置权限（覆盖原有） | 1. 给所有者加执行权限：`chmod u+x file`2. 移除其他用户的写权限：`chmod o-w file`3. 给所有用户设置 rw 权限：`chmod a=rw flie` |
+| 数值方式 | `chmod 数值 文件/目录`                    | 用 3 位八进制数（u、g、o 各 1 位）设置权限              | 1. 设置文件权限为 644（常用）：`chmod 644 file`2. 设置目录权限为 755（常用）：`chmod 755 dir` |
+
+### 关键注意事项
+
+* **目录权限的特殊性**：
+
+  * 目录必须有`x`权限才能`cd`进入（即使有`r`权限也无法进入）。
+  * 目录有`w`权限但无`x`权限时，无法`cd`进入，但可通过绝对路径创建 / 删除文件（实际中需避免此配置）。
+
+* **递归修改目录权限**：若需修改目录及所有子目录 / 文件的权限，需加`-R`选项
+
+* **`root`无视权限**
+
+### 案例演示
+
+```bash
+[vect@VM-0-11-centos Linux]$ ls
+cnt.txt  num_cc.txt  num_copy.txt  num.txt
+[vect@VM-0-11-centos Linux]$ ls -l cnt.txt
+-rw-rw-r-- 1 vect vect 0 Dec  3 18:01 cnt.txt
+# 所有者禁止读写 所属组禁止读写 其他用户禁止读
+[vect@VM-0-11-centos Linux]$ chmod u-rw,g-rw,o-r cnt.txt
+[vect@VM-0-11-centos Linux]$ ls -l cnt.txt
+---------- 1 vect vect 0 Dec  3 18:01 cnt.txt
+# 拥有者恢复读写权限 所属组恢复读写权限 其他用户恢复读权限且增加写权限
+[vect@VM-0-11-centos Linux]$ chmod u+rw,g+rw,o+rw cnt.txt
+[vect@VM-0-11-centos Linux]$ ls -l cnt.txt
+-rw-rw-rw- 1 vect vect 0 Dec  3 18:01 cnt.txt
+# 所有访问者对文件无任何权限
+[vect@VM-0-11-centos Linux]$ chmod a=- cnt.txt
+[vect@VM-0-11-centos Linux]$ ls -l cnt.txt
+---------- 1 vect vect 0 Dec  3 18:01 cnt.txt
+# 所有访问者增加读权限
+[vect@VM-0-11-centos Linux]$ chmod a=r cnt.txt
+[vect@VM-0-11-centos Linux]$ ls -l cnt.txt
+-r--r--r-- 1 vect vect 0 Dec  3 18:01 cnt.txt
+[vect@VM-0-11-centos Linux]$ ls -l num.txt
+-rw-rw-r-- 1 vect vect 7 Dec  3 18:01 num.txt
+# 修改两个文件的所有者和所属组有读写权限 其他用户无权限
+[vect@VM-0-11-centos Linux]$ chmod 660 num.txt cnt.txt
+[vect@VM-0-11-centos Linux]$ ls -l cnt.txt num.txt
+-rw-rw---- 1 vect vect 0 Dec  3 18:01 cnt.txt
+-rw-rw---- 1 vect vect 7 Dec  3 18:01 num.txt
+
+```
+
+
+
+```bash
+[vect@VM-0-11-centos ~]$ ls -ld Linux
+drwxrwxr-x 3 vect vect 4096 Dec  4 11:42 Linux
+# 把Linux目录下的所有文件递归变为755的权限
+[vect@VM-0-11-centos ~]$ chmod -R 755 Linux
+[vect@VM-0-11-centos ~]$ ls -ld Linux
+drwxr-xr-x 3 vect vect 4096 Dec  4 11:42 Linux
+[vect@VM-0-11-centos ~]$ ls -l Linux
+total 16
+-rwxr-xr-x 1 vect vect    0 Dec  3 18:01 cnt.txt
+-rwxr-xr-x 1 vect vect    0 Dec  4 11:42 copy.txt
+-rwxr-xr-x 1 vect vect    7 Dec  3 18:01 num_cc.txt
+-rwxr-xr-x 1 vect vect    7 Dec  3 18:01 num_copy.txt
+-rwxr-xr-x 1 vect vect    7 Dec  3 18:01 num.txt
+drwxr-xr-x 2 vect vect 4096 Dec  4 11:41 show
+```
+
+
+
+## 4. 辅助权限指令：chown/chgrp/umask（所有者、所属组、默认权限）
+
+### 4.1. chown：修改文件 / 目录的所有者
+
+注意：修改文件目录的所有者，先要经过人家的同意，把东西给人家，人家要不要是两回事，而`root`可以无视这些规则，`sudo`就是给指令提权，相当于是`root`级别
+
+* **语法**：`chown [选项] 新所有者 文件/目录`
+
+* **选项**：`-R`：递归修改目录及子内容的所有者。
+
+* **案例**：
+
+  ```bash
+  #  Linux目录下的所有文件所有者递归更改为zwr
+  [vect@VM-0-11-centos ~]$ sudo chown -R zwr /home/vect/Linux
+  [vect@VM-0-11-centos ~]$ ls -l Linux
+  total 16
+  -rwxr-xr-x 1 zwr vect    0 Dec  3 18:01 cnt.txt
+  -rwxr-xr-x 1 zwr vect    0 Dec  4 11:42 copy.txt
+  -rwxr-xr-x 1 zwr vect    7 Dec  3 18:01 num_cc.txt
+  -rwxr-xr-x 1 zwr vect    7 Dec  3 18:01 num_copy.txt
+  -rwxr-xr-x 1 zwr vect    7 Dec  3 18:01 num.txt
+  drwxr-xr-x 2 zwr vect 4096 Dec  4 11:41 show
+  ```
+  
+
+### 4.2. chgrp：修改文件 / 目录的所属组
+
+* **语法**：`chgrp [选项] 新所属组 文件/目录`
+
+* **选项**：`-R`：递归修改。
+
+* **案例**：
+
+  ```bash
+  # 将test.txt的所属组改为group1
+  [vect@VM-0-11-centos ~]]$ chgrp group1 test.txt
+  ```
+  
+
+### 4.3. umask：设置新建文件 / 目录的默认权限
+
+* **概念**：Linux 新建文件默认权限为`664`（无执行权限，避免安全风险），新建目录默认权限为`775`（需执行权限以进入）
+
+```bash
+[vect@VM-0-11-centos ~]$ mkdir study
+[vect@VM-0-11-centos ~]$ ls -ld ./study
+# 775
+drwxrwxr-x 2 vect vect 4096 Dec  4 15:25 ./study
+[vect@VM-0-11-centos ~]$ cd ./study
+[vect@VM-0-11-centos study]$ pwd
+/home/vect/study
+[vect@VM-0-11-centos study]$ touch homework.txt
+[vect@VM-0-11-centos study]$ ls -l homework.txt
+# 664
+-rw-rw-r-- 1 vect vect 0 Dec  4 15:27 homework.txt
+```
+
+* **最终权限 = 起始权限 & (~权限掩码)**
+
+| 文件类型 | 起始权限 |
+| -------- | -------- |
+| 目录     | `777`    |
+| 文件     | `666`    |
+
+起始权限把文件权限拉满了，对应的权限掩码默认就是`002`
+
+对于`002`->`000 000 010` 按位取反->`111 111 101`
+
+对于`777`->`111 111 111` ->`111 111 111 & 111 111 101 = 111 111 101`->`775`
+
+对于`666`->`110 110 110`->`110 110 110 & 111 111 101 = 110 110 100`->`664`
+
+所以印证上文新建目录权限默认为`775`,新建文件权限默认为`664`
+
+**这里还有个删除普通文件的问题：**
+
+```bash
+[vect@VM-0-11-centos study]$ chmod a=- homework.txt
+[vect@VM-0-11-centos study]$ ls -l homework.txt
+---------- 1 vect vect 0 Dec  4 15:27 homework.txt
+[vect@VM-0-11-centos study]$ rm homework.txt
+rm: remove write-protected regular empty file ‘homework.txt’? y
+[vect@VM-0-11-centos study]$ ls
+[vect@VM-0-11-centos study]$ cd ../
+[vect@VM-0-11-centos ~]$ pwd
+/home/vect
+[vect@VM-0-11-centos ~]$ ls
+cpp  Linux  list  study
+# 为什么homework.txt没有w权限也能被删除？
+[vect@VM-0-11-centos ~]$ ls -l study
+total 0
+```
+
+文件没有写权限却被删除了->**新建删除修改普通文件的权限，不是文件自己的权限，而是受文件所在目录的权限约束**
+
+```bash
+[vect@VM-0-11-centos ~]$ ls -ld study
+drwxrwxr-x 2 vect vect 4096 Dec  4 15:40 study
+[vect@VM-0-11-centos ~]$ chmod u-w,g-w study
+[vect@VM-0-11-centos ~]$ ls -ld study
+dr-xr-xr-x 2 vect vect 4096 Dec  4 15:40 study
+[vect@VM-0-11-centos ~]$ cd ./study
+[vect@VM-0-11-centos study]$ mkdir hh
+mkdir: cannot create directory ‘hh’: Permission denied
+[vect@VM-0-11-centos study]$ touch hh.c
+touch: cannot touch ‘hh.c’: Permission denied
+
+```
+
+* **语法**：
+
+  * 查看 umask：`umask`。
+  * 设置 umask：`umask 数值`（如`umask 027`）。
+
+* **案例**：
+
+  ```bash
+  # 查看当前umask（root默认022，普通用户002）
+  [vect@VM-0-11-centos study]$ umask
+  # 设置umask为027（新建文件权限666&~027=640，目录777&~027=750）
+  [vect@VM-0-11-centos study]$ umask 027
+  ```
+
+
+## 5. 粘滞位：解决目录 “删除权限” 问题
+
+### 概念铺垫
+
+* **目录权限**
+
+> 可执行权限：无可执行权限，无法`cd`到目录中
+>
+> 可读权限：无可读权限，无法用`ls`等指令查看目录中的文件
+>
+> 可写权限：无可写权限，无法在目录中新建和删除文件
+
+* **问题场景**：若目录权限为`777`（所有用户可写），任何用户都能删除目录内的文件（即使不是文件所有者），存在极大的安全风险！！！
+* **粘滞位作用**：给目录加粘滞位（`chmod +t 目录`）后，仅 3 类用户可删除目录内文件：
+  1. 超级管理员（root）。
+  2. 该目录的所有者。
+  3. 该文件所有者。
+
+### 语法与案例
+
+```bash
+# 1. 给/home目录加粘滞位（系统默认已加，确保普通用户不能删除他人文件）
+[root@bite-alicloud ~]$ chmod +t /home
+# 2. 验证粘滞位（目录权限最后一位变为t）
+[root@bite-alicloud ~]$ ls -ld /home
+# 输出：drwxrwxrwt. 3 root root 4096 Jan 11 16:00 /home（t表示粘滞位）
+```
+
+## 权限的总结
+
+| 权限        | 核心作用                                                     | 关键约束（易错点）                                           |
+| ----------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `x`（执行） | 目录的「准入通行证」：1. 能否 `cd` 进入目录2. 能否访问 / 操作目录内的文件（即使知道文件名） | ✅ 有 `x`：才能执行目录相关的所有命令（``cd/rm/touch` 等）                                                              ❌ 无 `x`：哪怕有 `r/w`，也无法 `cd` 进入、无法操作目录内任何内容（`ls/rm` 全报错） |
+| `r`（读）   | 仅控制「查看目录内文件列表」（ls 列出文件名 / 权限）         | ✅ 有 `r+x`：能 `ls` 列出目录内容                                                                                                     ❌ 有 `r` 无 `x`：无法 `ls`（`x` 是前提）                                                                                                       ❌ 有 `x` 无 `r`：能 `cd` 进入，但 `ls` 提示权限不足（仅能操作**已知名称**的文件，如 `rm /dir/已知文件.txt`） |
+| `w`（写）   | 控制「修改目录内文件列表」（增 / 删 / 重命名文件）           | ✅ 有 `w+x`：能` touch `创建、`rm` 删除、`mv`重命名目录内文件                                                               ❌ 有 `w` 无 `x`：无法 `cd` 进入，仅能通过绝对路径创建 / 删除文件（实际无意义，禁止配置）                        ❌ 无 `w`：即使有 `r+x`，也不能增 / 删 / 改目录内文件 |
+
+和普通文件区分开：
+
+| 类型 | `x` 权限含义                  | 核心逻辑                                  |
+| ---- | ----------------------------- | ----------------------------------------- |
+| 目录 | 准入权（能否进入 / 操作）     | 目录的 `x` 是 “基础”，`r/w` 是 “进阶操作” |
+| 文件 | 执行权（能否运行程序 / 脚本） | 文件的 `x` 是 “功能”，`r/w` 是 “读写内容” |
+
+
+
+# 五、进阶工具与实用技巧
+
+### 1. 压缩与解压：zip/unzip/tar
+
+###  tar：Linux 最常用压缩工具（支持多种格式）
+
+记住两组即可：
+
+>打包压缩：`tar cvzf fileName.tgz src`
+>
+>解压到指定目录: `tar xvzf fileName.tgz -C dir`
+>
+>* `-c`：create 创建压缩文件
+>* `-v`：显示压缩/解压过程
+>* `-z`：表示正在压缩
+>* `-f`：后面是压缩包的名字
+>* `-x`：解压压缩包
+>* `-C`：指定解压目录
+
+* **常用案例**：
+
+  ```bash
+  [vect@VM-0-11-centos ~]$ tree Linux
+  Linux
+  |-- cnt.txt
+  |-- copy.txt
+  |-- num_cc.txt
+  |-- num_copy.txt
+  |-- num.txt
+  `-- show
+      |-- show1.txt
+      `-- show2
+  
+  1 directory, 7 files
+  # 压缩
+  [vect@VM-0-11-centos ~]$ tar cvzf Linux.tgz Linux
+  Linux/
+  Linux/num.txt
+  Linux/num_copy.txt
+  Linux/cnt.txt
+  Linux/num_cc.txt
+  Linux/copy.txt
+  Linux/show/
+  Linux/show/show1.txt
+  Linux/show/show2
+  [vect@VM-0-11-centos ~]$ pwd
+  /home/vect
+  # 解压
+  [vect@VM-0-11-centos ~]$ tar xvzf Linux.tgz -C ./cpp
+  Linux/
+  Linux/num.txt
+  Linux/num_copy.txt
+  Linux/cnt.txt
+  Linux/num_cc.txt
+  Linux/copy.txt
+  Linux/show/
+  Linux/show/show1.txt
+  Linux/show/show2
+  [vect@VM-0-11-centos ~]$ tree cpp
+  cpp
+  `-- Linux
+      |-- cnt.txt
+      |-- copy.txt
+      |-- num_cc.txt
+      |-- num_copy.txt
+      |-- num.txt
+      `-- show
+          |-- show1.txt
+          `-- show2
+  
+  2 directories, 7 files
+  
+  ```
+
+
+### zip/unzip
+
+> 打包压缩：`zip -r fileName.zip src`   整个目录下的文件都打包压缩
+>
+> 解压到指定目录：`unzip -d dir`
+
+### rzsz
+
+这个工具用于Windows和Linux交互：
+
+![image-20251204171539216](https://gitee.com/binary-whispers/pic/raw/master///20251204193745536.png)
+
+![image-20251204171732960](https://gitee.com/binary-whispers/pic/raw/master///20251204193752988.png)
+
+## 2. 命令帮助：man（查看指令手册）
+
+* **概念**：`man`是 Linux 自带的 “联机手册”，可查看任何命令的语法、选项和示例，是从 0 到精通的核心工具。
+
+* **手册章节**：`man`手册分 9 章，常用章节：
+
+  * 1：普通命令（如`man 1 ls`查看`ls`命令）。
+  * 2：系统调用（如`man 2 open`查看`open`函数）。
+  * 3：库函数（如`man 3 printf`查看`printf`函数）。
+  * 8：系统管理命令（如`man 8 ifconfig`查看`ifconfig`）。
+
+* **案例**：
+
+  ```bash
+  # 1. 查看ls命令的手册（默认章节1）
+  [vect@VM-0-11-centos ~]$ man ls
+  # 2. 查看open系统调用的手册（章节2）
+  [vect@VM-0-11-centos ~]$ man 2 open
+  # 3. 查看man手册的使用说明（查看man自己）
+  [vect@VM-0-11-centos ~]$ man man
+  ```
+  
+
+## 3. 常用热键：提升操作效率
+
+* `Tab`：命令补全 / 文件补全（按一次补全，按两次显示所有可能选项，避免输错命令）。
+* `Ctrl+C`：终止当前运行的命令（如终止`tail -f`跟踪日志）。
+* `Ctrl+D`：退出当前 Shell 会话（等价于`exit`）。
+* `Ctrl+L`：清空终端屏幕（等价于`clear`命令）。
